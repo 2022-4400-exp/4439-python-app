@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: python-app
+  name: python-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-app
+  template:
+    metadata:
+      labels:
+        app: python-app
+    spec:
+      containers:
+      - image: smatsushita2424/python-app
+        name: python-app
+        volumeMounts:
+        - mountPath: /var/python-app
+          name: python-data-mount
+      volumes:
+      - name: python-data-mount
+        persistentVolumeClaim:
+          claimName: python-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: python-app
+  name: python-app
+spec:
+  selector:
+    app: python-app
+  type: NodePort
+  ports:
+  - port: 5000
+    targetPort: 5000
+    protocol: TCP
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: python-data
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: nfs-client
